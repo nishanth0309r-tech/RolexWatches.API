@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="RolexWatches.API/RolexWatches.API.csproj" />
+  <Project Path="RolexWatches.Application/RolexWatches.Application.csproj" />
+  <Project Path="RolexWatches.Domain/RolexWatches.Domain.csproj" />
+  <Project Path="RolexWatches.Infrastructure/RolexWatches.Infrastructure.csproj" />
+</Solution>
