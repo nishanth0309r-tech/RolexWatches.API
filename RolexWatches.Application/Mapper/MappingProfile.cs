@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using RolexWatches.Application.Dto;
 using RolexWatches.Domain.Entities;
 using RolexWatches.Application.Dto;
 
@@ -27,7 +28,15 @@ namespace RolexWatches.Application.Mapper
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : string.Empty));
 
             CreateMap<User, CustomerDto>();
+            CreateMap<CartItem, CartItemDto>()
+                .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
+                .ForMember(d => d.ImageUrl, o => o.MapFrom(s => s.Product!.ImageUrl))
+                .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
 
+            CreateMap<WishlistItem, WishlistItemDto>()
+                .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
+                .ForMember(d => d.ImageUrl, o => o.MapFrom(s => s.Product!.ImageUrl))
+                .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
             CreateMap<Review, ReviewDto>()
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : string.Empty))
                 .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.User != null ? s.User.FullName : string.Empty));

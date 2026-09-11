@@ -1,4 +1,10 @@
-﻿namespace RolexWatches.Domain.Entities
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace RolexWatches.Domain.Entities
 {
     public class Product
     {
@@ -17,5 +23,6 @@
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+        public decimal Price { get; set; }
     }
 }
