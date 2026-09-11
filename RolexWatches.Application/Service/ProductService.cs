@@ -3,7 +3,10 @@ using RolexWatches.Application.DTOs.Common;
 using RolexWatches.Application.DTOs.Product;
 using RolexWatches.Application.Interfaces.Repositories;
 using RolexWatches.Application.Interfaces.Services;
+using RolexWatches.Application.Dto;
+using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Domain.Entities;
+using RolexWatches.Domain.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -58,6 +61,10 @@ namespace RolexWatches.Application.Service
 
             var created = await _productRepository.GetByIdWithDetailsAsync(product.Id);
             return _mapper.Map<ProductDto>(created);
+            var entity = mapper.Map<Product>(dto);
+            await repo.AddAsync(entity);
+            await repo.SaveChangesAsync();
+            return mapper.Map<ProductDto>(entity);
         }
 
         public async Task<ProductDto?> UpdateAsync(int id, UpdateProductDto dto)
@@ -93,10 +100,17 @@ namespace RolexWatches.Application.Service
 
             var updated = await _productRepository.GetByIdWithDetailsAsync(id);
             return _mapper.Map<ProductDto>(updated);
+            var entity= await repo.GetByIdAsync(id);
+            if(entity == null) return false;
+            repo.Delete(entity);
+            return await repo.SaveChangesAsync();
         }
 
+        public async Task<List<ProductDto>> GetAllAsync()
         public async Task<bool> DeleteAsync(int id)
         {
+            var products = await repo.GetAllAsync();
+            return mapper.Map<List<ProductDto>>(products);
             var product = await _productRepository.GetByIdAsync(id);
             if (product is null) return false;
 
@@ -104,25 +118,17 @@ namespace RolexWatches.Application.Service
             return await _productRepository.SaveChangesAsync();
         }
 
-        // ----- Module 3: Discovery / Inventory -----
-
-        public async Task<ProductDto?> UpdateStockAsync(int id, int newStockQuantity)
+        public async Task<ProductDto?> GetByIdAsync(int id)
         {
-            var product = await _productRepository.GetByIdAsync(id);
-            if (product is null) return null;
-
-            product.StockQuantity = newStockQuantity;
-            product.UpdatedAt = DateTime.UtcNow;
-
-            _productRepository.Update(product);
-            await _productRepository.SaveChangesAsync();
-
-            var updated = await _productRepository.GetByIdWithDetailsAsync(id);
-            return _mapper.Map<ProductDto>(updated);
+            var product =await repo.GetByIdAsync(id);
+            return product==null ? null : mapper.Map<ProductDto>(product);
         }
 
+        public async Task<bool> UpdateAsync(int id, UpdateProductDto dto)
         public async Task<PagedResult<ProductDto>> GetLowStockAsync(int pageNumber, int pageSize)
         {
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null) return false;
             var lowStock = await _productRepository.GetLowStockProductsAsync();
 
             var page = lowStock
@@ -131,6 +137,10 @@ namespace RolexWatches.Application.Service
                 .Select(p => _mapper.Map<ProductDto>(p))
                 .ToList();
 
+            mapper.Map(dto, entity);
+             repo.Update(entity);
+            await repo.SaveChangesAsync();
+            return true;
             return new PagedResult<ProductDto>
             {
                 Items = page,

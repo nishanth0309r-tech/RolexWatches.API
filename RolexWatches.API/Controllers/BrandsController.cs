@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RolexWatches.Application.Dto;
+using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Application.DTOs.Brand;
 using RolexWatches.Application.Interfaces.Services;
 
 namespace RolexWatches.API.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
     [Route("api/[controller]")]
     public class BrandsController : ControllerBase
@@ -19,14 +22,17 @@ namespace RolexWatches.API.Controllers
 
         // GET api/brands
         [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _brandService.GetAllAsync());
+        public async Task<IActionResult> GetAll()
+        {
+            var brands = await service.GetAllAsync();
+            return Ok(brands);
+        }
 
-        // GET api/brands/5
-        [HttpGet("{id:int}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var brand = await _brandService.GetByIdAsync(id);
-            return brand is null ? NotFound() : Ok(brand);
+            var brand = await service.GetByIdAsync(id);
+            return brand == null ? NotFound() : Ok(brand);
         }
 
         // POST api/brands  (Admin only)
@@ -40,7 +46,7 @@ namespace RolexWatches.API.Controllers
                 return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
             }
             catch (InvalidOperationException ex)
-            {
+        {
                 return Conflict(new { message = ex.Message });
             }
         }
@@ -56,7 +62,7 @@ namespace RolexWatches.API.Controllers
                 return updated is null ? NotFound() : Ok(updated);
             }
             catch (InvalidOperationException ex)
-            {
+        {
                 return Conflict(new { message = ex.Message });
             }
         }
