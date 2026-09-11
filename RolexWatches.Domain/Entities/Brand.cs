@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace RolexWatches.Domain.Entities
+{
+    public class Brand
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? LogoUrl { get; set; }
+        public string? Description { get; set; }
+        public bool IsActive { get; set; } = true;
+
+        public ICollection<Product> Products { get; set; } = new List<Product>();
+    }
+}
