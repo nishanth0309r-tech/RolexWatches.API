@@ -8,6 +8,7 @@ using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Domain.Interfaces;
 using RolexWatches.Infrastructure.Data;
 using RolexWatches.Infrastructure.Repository;
+using RolexWatches.Infrastructure.Services;
 
 namespace RolexWatches.API
 {

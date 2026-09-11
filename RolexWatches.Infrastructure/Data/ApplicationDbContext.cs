@@ -15,6 +15,7 @@ namespace RolexWatches.Infrastructure.Data
 
         public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
+        public DbSet<Product> Products { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
