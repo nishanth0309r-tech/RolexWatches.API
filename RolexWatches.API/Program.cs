@@ -9,69 +9,15 @@ using RolexWatches.Domain.Interfaces;
 using RolexWatches.Infrastructure.Data;
 using RolexWatches.Infrastructure.Repository;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddControllers();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
-
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IWishlistService, WishlistService>();
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-        };
-    });
-
-builder.Services.AddAuthorization();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+namespace RolexWatches.API
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "RolexWatches API", Version = "v1" });
-
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    public class Program
     {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter: Bearer {your token}"
-    });
-
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
+        public static void Main(string[] args)
         {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
 
 builder.Services.AddCors(options =>
 {
@@ -81,18 +27,53 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-var app = builder.Build();
+            builder.Services.AddDbContext<ApplicationDbContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+            //automapper
+            builder.Services.AddAutoMapper(p=>p.AddProfile<AuthMappingProfile>());
 
-app.UseHttpsRedirection();
-app.UseCors("AllowAngular");
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
+            //registering service
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
+            //token
+            var jwtSection = builder.Configuration.GetSection("Jwt");
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSection["Issuer"],
+                        ValidAudience = jwtSection["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(jwtSection["Key"]!))
+                    };
+                });
+
+            builder.Services.AddAuthorization();
+
+            var app = builder.Build();
+
+            app.UseMiddleware<ExceptionMiddleware>();//for exception handling
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseMiddleware<ExceptionMiddleware>();   // <-- register it here, early
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+            app.MapControllers();
 
 app.Run();
