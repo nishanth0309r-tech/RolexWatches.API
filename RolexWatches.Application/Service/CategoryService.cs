@@ -3,9 +3,8 @@ using RolexWatches.Application.Dto;
 using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Domain.Entities;
 using RolexWatches.Domain.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace RolexWatches.Application.Service
 {
@@ -20,41 +19,42 @@ namespace RolexWatches.Application.Service
             this.mapper = mapper;
         }
 
+        public async Task<List<CategoryDto>> GetAllAsync()
+        {
+            var categories = await repo.GetAllAsync();
+            return mapper.Map<List<CategoryDto>>(categories);
+        }
+
+        public async Task<CategoryDto?> GetByIdAsync(int id)
+        {
+            var entity = await repo.GetByIdAsync(id);
+            return entity == null ? null : mapper.Map<CategoryDto>(entity);
+        }
+
         public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto)
         {
-            var entity= mapper.Map<Category>(dto);
+            var entity = mapper.Map<Category>(dto);
             await repo.AddAsync(entity);
             await repo.SaveChangesAsync();
             return mapper.Map<CategoryDto>(entity);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> UpdateAsync(int id, CreateCategoryDto dto)
         {
             var entity = await repo.GetByIdAsync(id);
-            if(entity == null)
-            {
-                return false;
-            }
-            repo.Delete(entity);
+            if (entity == null) return false;
+
+            mapper.Map(dto, entity);
+            repo.Update(entity);
             return await repo.SaveChangesAsync();
         }
 
-        public async Task<List<CategoryDto>> GetAllAsync()
+        public async Task<bool> DeleteAsync(int id)
         {
-            var categories= await repo.GetAllAsync();
-            return mapper.Map<List<CategoryDto>>(categories);
-        }
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null) return false;
 
-        public async Task<bool> UpdateAsync(int id, CreateCategoryDto dto)
-        {
-            var entity=await repo.GetByIdAsync(id);
-            if ( entity==null)
-            {
-                return false;
-
-            }
-            entity.Name = dto.Name;
-            repo.Update(entity);
+            repo.Delete(entity);
             return await repo.SaveChangesAsync();
         }
     }

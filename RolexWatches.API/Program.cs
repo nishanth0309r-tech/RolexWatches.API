@@ -1,93 +1,197 @@
-using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using RolexWatches.API.Middleware;
 using RolexWatches.Application.Mapper;
+using RolexWatches.Application.Mapping;
 using RolexWatches.Application.Service;
 using RolexWatches.Application.ServiceInterface;
+using RolexWatches.Application.Validators;
 using RolexWatches.Domain.Interfaces;
 using RolexWatches.Infrastructure.Data;
 using RolexWatches.Infrastructure.Repository;
 using RolexWatches.Infrastructure.Services;
+using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// --- Core services ------------------------------------------------------
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// AutoMapper — both profiles registered in one call.
-builder.Services.AddAutoMapper(p =>
+public partial class Program
 {
-    p.AddProfile<MappingProfile>();
-    p.AddProfile<AuthMappingProfile>();
-});
-
-// --- Repository / service registrations ----------------------------------
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IBrandRepository, BrandRepository>();
-builder.Services.AddScoped<IBrandService, BrandService>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-
-// --- JWT authentication ---------------------------------------------------
-var jwtSection = builder.Configuration.GetSection("Jwt");
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+    private static void Main(string[] args)
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSection["Issuer"],
-        ValidAudience = jwtSection["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSection["Key"]!))
-    };
-});
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddAuthorization();
+        // =====================================================
+        // CONTROLLERS
+        // =====================================================
 
-// --- CORS ------------------------------------------------------------------
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAngular", policy =>
-        policy.WithOrigins("http://localhost:4200")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
-});
+        builder.Services.AddControllers();
 
-var app = builder.Build();
+        // =====================================================
+        // SWAGGER
+        // =====================================================
 
-// --- Pipeline ---------------------------------------------------------------
-app.UseMiddleware<ExceptionMiddleware>(); // wraps everything below it
+        builder.Services.AddEndpointsApiExplorer();
 
-app.UseHttpsRedirection();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "RolexWatches API",
+                Version = "v1"
+            });
 
-app.UseCors("AllowAngular");
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "Bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter JWT token like: Bearer {token}"
+            });
 
-app.UseAuthentication();
-app.UseAuthorization();
+            options.AddSecurityRequirement(document =>
+                new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document)] =
+                        new List<string>()
+                });
+        });
 
-app.MapControllers();
+        // =====================================================
+        // DATABASE
+        // =====================================================
 
-app.Run();
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseSqlServer(
+                builder.Configuration.GetConnectionString("DefaultConnection"));
+        });
+
+        // =====================================================
+        // AUTOMAPPER
+        // =====================================================
+
+        builder.Services.AddAutoMapper(cfg =>
+        {
+            cfg.AddProfile<MappingProfile>();
+            cfg.AddProfile<CatalogMappingProfile>();
+            cfg.AddProfile<AuthMappingProfile>();
+        });
+
+        // =====================================================
+        // FLUENT VALIDATION
+        // =====================================================
+
+        builder.Services.AddFluentValidationAutoValidation();
+        builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
+
+        // =====================================================
+        // REPOSITORIES
+        // =====================================================
+
+        builder.Services.AddScoped<IProductRepository, ProductRepository>();
+        builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+        // =====================================================
+        // SERVICES
+        // =====================================================
+
+        builder.Services.AddScoped<IProductService, ProductService>();
+        builder.Services.AddScoped<IBrandService, BrandService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
+        builder.Services.AddScoped<IOrderService, OrderService>();
+        builder.Services.AddScoped<IReviewService, ReviewService>();
+        builder.Services.AddScoped<ICustomerService, CustomerService>();
+        builder.Services.AddScoped<IDashboardService, DashboardService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+
+        // =====================================================
+        // JWT
+        // =====================================================
+
+        var jwtSection = builder.Configuration.GetSection("Jwt");
+        var jwtKey = jwtSection["Key"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException(
+                "JWT Key is missing in appsettings.json");
+        }
+
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+
+            options.DefaultChallengeScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+
+                ValidIssuer = jwtSection["Issuer"],
+                ValidAudience = jwtSection["Audience"],
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey))
+            };
+        });
+
+        // =====================================================
+        // AUTHORIZATION
+        // =====================================================
+
+        builder.Services.AddAuthorization();
+
+        // =====================================================
+        // CORS
+        // =====================================================
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAngular", policy =>
+            {
+                policy
+                    .WithOrigins("http://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
+
+        // =====================================================
+        // BUILD
+        // =====================================================
+
+        var app = builder.Build();
+
+        app.UseMiddleware<ExceptionMiddleware>();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseCors("AllowAngular");
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
+
+        app.Run();
+    }
+}

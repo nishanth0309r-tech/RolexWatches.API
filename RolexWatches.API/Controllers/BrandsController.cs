@@ -1,54 +1,62 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RolexWatches.Application.Dto;
 using RolexWatches.Application.ServiceInterface;
 
 namespace RolexWatches.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class BrandsController : ControllerBase
     {
-        private readonly IBrandService service;
+        private readonly IBrandService _brandService;
 
-        public BrandsController(IBrandService service)
+        public BrandsController(IBrandService brandService)
         {
-            this.service = service;
+            _brandService = brandService;
         }
 
+        // GET api/brands
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var brands = await service.GetAllAsync();
+            var brands = await _brandService.GetAllAsync();
             return Ok(brands);
         }
 
-        [HttpGet("{id}")]
+        // GET api/brands/5
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var brand = await service.GetByIdAsync(id);
+            var brand = await _brandService.GetByIdAsync(id);
             return brand == null ? NotFound() : Ok(brand);
         }
 
+        // POST api/brands  (Admin only)
         [HttpPost]
-        public async Task<IActionResult> Create(CreateBrandDto dto)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([FromBody] CreateBrandDto dto)
         {
-            var brand = await service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = brand.Id }, brand);
+            var created = await _brandService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, CreateBrandDto dto)
+        // PUT api/brands/5  (Admin only)
+        [HttpPut("{id:int}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(int id, [FromBody] CreateBrandDto dto)
         {
-            var success = await service.UpdateAsync(id, dto);
-            return success ? NoContent() : NotFound();
+            var updated = await _brandService.UpdateAsync(id, dto);
+            return updated ? NoContent() : NotFound();
         }
 
-        [HttpDelete("{id}")]
+        // DELETE api/brands/5  (Admin only)
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var success = await service.DeleteAsync(id);
-            return success ? NoContent() : NotFound();
+            var deleted = await _brandService.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

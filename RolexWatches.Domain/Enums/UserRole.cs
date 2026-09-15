@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RolexWatches.Domain.Enum
+namespace RolexWatches.Domain.Enums
 {
     public enum UserRole
     {

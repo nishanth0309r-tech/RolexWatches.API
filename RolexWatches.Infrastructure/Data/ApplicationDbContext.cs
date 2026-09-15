@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RolexWatches.Domain.Entities;
 
-
-
 namespace RolexWatches.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
@@ -17,12 +15,9 @@ namespace RolexWatches.Infrastructure.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Review> Reviews => Set<Review>();
-        
-        
 
         public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
-        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,11 +48,14 @@ namespace RolexWatches.Infrastructure.Data
                 .HasForeignKey(r => r.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-           
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.User)
+                .WithMany(p => p.Reviews)
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.ToTable("Qwin9User");
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(200);
                 entity.Property(u => u.FullName).IsRequired().HasMaxLength(100);
