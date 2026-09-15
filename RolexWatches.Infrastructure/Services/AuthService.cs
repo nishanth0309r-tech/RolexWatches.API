@@ -1,17 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using AutoMapper;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RolexWatches.Application.Dto;
 using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RolexWatches.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RolexWatches.Infrastructure.Services
 {
@@ -29,7 +28,7 @@ namespace RolexWatches.Infrastructure.Services
         }
         public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
         {
-            var user = await dbContext.Qwin9Users.FirstOrDefaultAsync(u => u.Email == dto.Email)
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Email == dto.Email)
                ?? throw new UnauthorizedAccessException("Invalid email or password.");
 
             if (!user.IsActive)
@@ -48,18 +47,20 @@ namespace RolexWatches.Infrastructure.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            var emailTaken = await dbContext.Qwin9Users.AnyAsync(u => u.Email == dto.Email);
+            var emailTaken = await dbContext.Users.AnyAsync(u => u.Email == dto.Email);
             if (emailTaken)
                 throw new InvalidOperationException("Email is already registered.");
 
             var user = mapper.Map<User>(dto);
 
             using var hmac = new HMACSHA512();
+
             user.PasswordSalt = Convert.ToBase64String(hmac.Key);
+
             user.PasswordHash = Convert.ToBase64String(
                 hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)));
 
-            dbContext.Qwin9Users.Add(user);
+            dbContext.Users.Add(user);
             await dbContext.SaveChangesAsync();
 
             return BuildAuthResponse(user);

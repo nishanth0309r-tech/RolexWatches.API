@@ -23,6 +23,6 @@ namespace RolexWatches.Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
-        public decimal Price { get; set; }
+        
     }
 }

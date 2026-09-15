@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using RolexWatches.API.Middleware;
 using RolexWatches.Application.Mapper;
 using RolexWatches.Application.Service;
 using RolexWatches.Application.ServiceInterface;
@@ -10,29 +11,23 @@ using RolexWatches.Infrastructure.Data;
 using RolexWatches.Infrastructure.Repository;
 using RolexWatches.Infrastructure.Services;
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using RolexWatches.Application.Mapper;
-using RolexWatches.Application.Service;
-using RolexWatches.Application.ServiceInterface;
-using RolexWatches.Domain.Interfaces;
-using RolexWatches.Infrastructure.Data;
-using RolexWatches.Infrastructure.Repository;
-using AutoMapper;
-
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Core services ------------------------------------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
-
-builder.Services.AddAutoMapper(p=>p.AddProfile<MappingProfile>());   
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// AutoMapper — both profiles registered in one call.
+builder.Services.AddAutoMapper(p =>
+{
+    p.AddProfile<MappingProfile>();
+    p.AddProfile<AuthMappingProfile>();
+});
 
+// --- Repository / service registrations ----------------------------------
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
@@ -46,8 +41,10 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-var jwtKey = builder.Configuration["Jwt:Key"]!;
+// --- JWT authentication ---------------------------------------------------
+var jwtSection = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -61,13 +58,16 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        ValidIssuer = jwtSection["Issuer"],
+        ValidAudience = jwtSection["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(jwtSection["Key"]!))
     };
 });
+
 builder.Services.AddAuthorization();
 
+// --- CORS ------------------------------------------------------------------
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -76,53 +76,18 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-            builder.Services.AddDbContext<ApplicationDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-            //automapper
-            builder.Services.AddAutoMapper(p=>p.AddProfile<AuthMappingProfile>());
-
-            //registering service
-            builder.Services.AddScoped<IAuthService, AuthService>();
-
-            //token
-            var jwtSection = builder.Configuration.GetSection("Jwt");
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtSection["Issuer"],
-                        ValidAudience = jwtSection["Audience"],
-                        IssuerSigningKey = new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(jwtSection["Key"]!))
-                    };
-                });
-
-            builder.Services.AddAuthorization();
-
 var app = builder.Build();
 
-            app.UseMiddleware<ExceptionMiddleware>();//for exception handling
+// --- Pipeline ---------------------------------------------------------------
+app.UseMiddleware<ExceptionMiddleware>(); // wraps everything below it
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
+app.UseHttpsRedirection();
 
-            app.UseHttpsRedirection();
+app.UseCors("AllowAngular");
 
-            app.UseMiddleware<ExceptionMiddleware>();   // <-- register it here, early
+app.UseAuthentication();
+app.UseAuthorization();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-            app.MapControllers();
+app.MapControllers();
 
 app.Run();
