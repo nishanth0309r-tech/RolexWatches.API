@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using RolexWatches.Domain.Enums;
 
 namespace RolexWatches.Infrastructure.Repository
 {
@@ -19,7 +20,7 @@ namespace RolexWatches.Infrastructure.Repository
 
         public async Task<List<User>> GetAllCustomersAsync()
         {
-            return await dbContext.Users.Where(u => u.Role == "Customer").ToListAsync();
+            return await dbContext.Users.Where(u => u.Role == UserRole.Customer).ToListAsync();
         }
 
         public async Task<User?> GetByIdAsync(int id)

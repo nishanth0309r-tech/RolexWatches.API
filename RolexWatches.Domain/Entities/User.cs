@@ -1,4 +1,4 @@
-﻿using RolexWatches.Domain.Enum;
+﻿using RolexWatches.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,6 +17,9 @@ namespace RolexWatches.Domain.Entities
         public string? PhoneNumber { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 }
 

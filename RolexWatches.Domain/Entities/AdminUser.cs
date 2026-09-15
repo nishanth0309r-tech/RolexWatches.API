@@ -1,6 +1,6 @@
 ﻿namespace RolexWatches.Domain.Entities
 {
-    public class User
+    public class AdminUser
     {
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
