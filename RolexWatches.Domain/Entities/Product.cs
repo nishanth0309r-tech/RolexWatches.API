@@ -37,16 +37,16 @@ namespace RolexWatches.Domain.Entities
 
         // Navigation properties
         public ICollection<ProductImage> Images { get; set; }
-            = new List<ProductImage>();
+            = [];
 
         public ICollection<ProductSpecification> Specifications { get; set; }
-            = new List<ProductSpecification>();
+            = [];
 
         public ICollection<Review> Reviews { get; set; }
-            = new List<Review>();
+            = [];
 
         public ICollection<OrderItem> OrderItems { get; set; }
-            = new List<OrderItem>();
+            = [];
 
         // Dates
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -64,8 +64,7 @@ namespace RolexWatches.Domain.Entities
             DiscountPrice.HasValue && DiscountPrice.Value < Price
                 ? DiscountPrice.Value
                 : Price;
-        public ICollection<Review> Reviews { get; set; } = new List<Review>();
-        public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    
         
     }
 }

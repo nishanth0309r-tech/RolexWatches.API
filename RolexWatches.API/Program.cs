@@ -3,7 +3,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using RolexWatches.API.Middleware;
 using RolexWatches.Application.Mapper;
 using RolexWatches.Application.Mapping;
@@ -15,6 +15,8 @@ using RolexWatches.Infrastructure.Data;
 using RolexWatches.Infrastructure.Repository;
 using RolexWatches.Infrastructure.Services;
 using System.Text;
+
+namespace RolexWatches.API;
 
 public partial class Program
 {
@@ -52,12 +54,20 @@ public partial class Program
                 Description = "Enter JWT token like: Bearer {token}"
             });
 
-            options.AddSecurityRequirement(document =>
-                new OpenApiSecurityRequirement
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
                 {
-                    [new OpenApiSecuritySchemeReference("Bearer", document)] =
-                        new List<string>()
-                });
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()
+                }
+            });
         });
 
         // =====================================================
@@ -86,6 +96,7 @@ public partial class Program
         // =====================================================
 
         builder.Services.AddFluentValidationAutoValidation();
+
         builder.Services.AddValidatorsFromAssemblyContaining<CreateProductDtoValidator>();
 
         // =====================================================
@@ -113,7 +124,7 @@ public partial class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
 
         // =====================================================
-        // JWT
+        // JWT AUTHENTICATION
         // =====================================================
 
         var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -145,9 +156,8 @@ public partial class Program
                 ValidIssuer = jwtSection["Issuer"],
                 ValidAudience = jwtSection["Audience"],
 
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtKey))
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtKey))
             };
         });
 
@@ -173,12 +183,20 @@ public partial class Program
         });
 
         // =====================================================
-        // BUILD
+        // BUILD APPLICATION
         // =====================================================
 
         var app = builder.Build();
 
+        // =====================================================
+        // EXCEPTION MIDDLEWARE
+        // =====================================================
+
         app.UseMiddleware<ExceptionMiddleware>();
+
+        // =====================================================
+        // SWAGGER
+        // =====================================================
 
         if (app.Environment.IsDevelopment())
         {
@@ -186,11 +204,23 @@ public partial class Program
             app.UseSwaggerUI();
         }
 
+        // =====================================================
+        // HTTP PIPELINE
+        // =====================================================
+
         app.UseHttpsRedirection();
+
         app.UseCors("AllowAngular");
+
         app.UseAuthentication();
+
         app.UseAuthorization();
+
         app.MapControllers();
+
+        // =====================================================
+        // RUN
+        // =====================================================
 
         app.Run();
     }
