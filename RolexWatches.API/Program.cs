@@ -109,6 +109,8 @@ public partial class Program
         builder.Services.AddScoped<IOrderRepository, OrderRepository>();
         builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<ICartRepository, CartRepository>();
+        builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 
         // =====================================================
         // SERVICES
@@ -122,6 +124,8 @@ public partial class Program
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<IDashboardService, DashboardService>();
         builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<ICartService, CartService>();
+        builder.Services.AddScoped<IWishlistService, WishlistService>();
 
         // =====================================================
         // JWT AUTHENTICATION

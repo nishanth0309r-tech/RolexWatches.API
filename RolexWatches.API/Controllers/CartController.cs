@@ -20,8 +20,18 @@ namespace RolexWatches.API.Controllers
         public async Task<IActionResult> GetCart() => Ok(await _service.GetCartAsync(UserId));
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart(AddToCartDto dto) =>
-            Ok(await _service.AddToCartAsync(UserId, dto));
+        public async Task<IActionResult> AddToCart(AddToCartDto dto) 
+        {
+            try
+            {
+                return Ok(await _service.AddToCartAsync(UserId, dto));
+            }
+            catch (Exception ex)
+            {
+
+                return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
+            }
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateQuantity(int id, UpdateCartQuantityDto dto)

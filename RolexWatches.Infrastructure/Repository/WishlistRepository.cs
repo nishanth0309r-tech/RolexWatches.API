@@ -20,17 +20,5 @@ namespace RolexWatches.Infrastructure.Repository
         public async Task AddAsync(WishlistItem item) => await _context.WishlistItems.AddAsync(item);
         public void Remove(WishlistItem item) => _context.WishlistItems.Remove(item);
         public async Task<bool> SaveChangesAsync() => await _context.SaveChangesAsync() > 0;
-
-        Task<List<WishlistItem>> IWishlistRepository.GetByUserIdAsync(string userId)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<WishlistItem?> IWishlistRepository.GetByUserAndProductAsync(string userId, int productId)
-        {
-            throw new NotImplementedException();
-        }
-
-       
     }
 }
