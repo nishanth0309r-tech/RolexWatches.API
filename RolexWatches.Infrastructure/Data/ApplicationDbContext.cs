@@ -27,11 +27,7 @@ namespace RolexWatches.Infrastructure.Data
                 .HasForeignKey(p => p.BrandId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Category)
-                .WithMany(c => c.Products)
-                .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+            
 
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.User)
@@ -44,11 +40,7 @@ namespace RolexWatches.Infrastructure.Data
                 .WithMany(o => o.OrderItems)
                 .HasForeignKey(oi => oi.OrderId);
 
-            modelBuilder.Entity<OrderItem>()
-                .HasOne(oi => oi.Product)
-                .WithMany(p => p.OrderItems)
-                .HasForeignKey(oi => oi.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+            
 
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Product)

@@ -1,15 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
 using AutoMapper;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RolexWatches.Application.Dto;
 using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using RolexWatches.Infrastructure.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+
 
 namespace RolexWatches.Infrastructure.Services
 {
@@ -53,7 +55,9 @@ namespace RolexWatches.Infrastructure.Services
             var user = mapper.Map<User>(dto);
 
             using var hmac = new HMACSHA512();
+
             user.PasswordSalt = Convert.ToBase64String(hmac.Key);
+
             user.PasswordHash = Convert.ToBase64String(
                 hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)));
 
