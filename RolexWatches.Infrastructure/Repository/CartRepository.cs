@@ -7,16 +7,16 @@ namespace RolexWatches.Infrastructure.Repository
 {
     public class CartRepository : ICartRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ApplicationDbContext dbcontext;
 
         public CartRepository(ApplicationDbContext context)
         {
-            _context = context;
+            dbcontext = context;
         }
 
         public async Task<List<CartItem>> GetByUserIdAsync(string userId)
         {
-            return await _context.CartItems
+            return await dbcontext.CartItems
                 .Include(c => c.Product)
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
@@ -26,7 +26,7 @@ namespace RolexWatches.Infrastructure.Repository
             string userId,
             int productId)
         {
-            return await _context.CartItems
+            return await dbcontext.CartItems
                 .Include(c => c.Product)
                 .FirstOrDefaultAsync(c =>
                     c.UserId == userId &&
@@ -35,29 +35,29 @@ namespace RolexWatches.Infrastructure.Repository
 
         public async Task<CartItem?> GetByIdAsync(int id)
         {
-            return await _context.CartItems
+            return await dbcontext.CartItems
                 .Include(c => c.Product)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task AddAsync(CartItem item)
         {
-            await _context.CartItems.AddAsync(item);
+            await dbcontext.CartItems.AddAsync(item);
         }
 
         public void Update(CartItem item)
         {
-            _context.CartItems.Update(item);
+            dbcontext.CartItems.Update(item);
         }
 
         public void Remove(CartItem item)
         {
-            _context.CartItems.Remove(item);
+            dbcontext.CartItems.Remove(item);
         }
 
         public async Task<bool> SaveChangesAsync()
         {
-            return await _context.SaveChangesAsync() > 0;
+            return await dbcontext.SaveChangesAsync() > 0;
         }
     }
 }

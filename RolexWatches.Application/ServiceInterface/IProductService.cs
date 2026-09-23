@@ -1,6 +1,6 @@
-﻿using RolexWatches.Application.Dto;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using RolexWatches.Application.Dto;
 
 namespace RolexWatches.Application.ServiceInterface
 {
@@ -11,5 +11,10 @@ namespace RolexWatches.Application.ServiceInterface
         Task<ProductDto> CreateAsync(CreateProductDto dto);
         Task<bool> UpdateAsync(int id, UpdateProductDto dto);
         Task<bool> DeleteAsync(int id);
+
+        // ---------- Module 3: Search / Filter / Inventory ----------
+        Task<PagedResult<ProductDto>> SearchAsync(ProductFilterDto filter);
+        Task<bool> UpdateStockAsync(int id, int newStockQuantity);
+        Task<List<ProductDto>> GetLowStockAsync();
     }
 }

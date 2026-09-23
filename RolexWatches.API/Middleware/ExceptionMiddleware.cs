@@ -7,9 +7,9 @@ namespace RolexWatches.API.Middleware
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly ILogger logger;
+        private readonly ILogger<ExceptionMiddleware> logger;
 
-        public ExceptionMiddleware(RequestDelegate next,ILogger logger)
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
         {
             this.next = next;
             this.logger = logger;

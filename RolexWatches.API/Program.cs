@@ -6,7 +6,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using RolexWatches.API.Middleware;
 using RolexWatches.Application.Mapper;
-using RolexWatches.Application.Mapping;
 using RolexWatches.Application.Service;
 using RolexWatches.Application.ServiceInterface;
 using RolexWatches.Application.Validators;
