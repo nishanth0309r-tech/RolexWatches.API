@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using RolexWatches.Application.Dto;
 using RolexWatches.Domain.Entities;
+using System.Linq;
 
 
 namespace RolexWatches.Application.Mapper
@@ -12,7 +13,9 @@ namespace RolexWatches.Application.Mapper
             CreateMap<Product, ProductDto>()
                 .ForMember(d => d.BrandName, opt => opt.MapFrom(s => s.Brand != null ? s.Brand.Name : string.Empty))
                 .ForMember(d => d.CategoryName, opt => opt.MapFrom(s => s.Category != null ? s.Category.Name : string.Empty));
+            
             CreateMap<CreateProductDto, Product>();
+
             CreateMap<UpdateProductDto, Product>();
 
             CreateMap<Brand, BrandDto>().ReverseMap();
@@ -28,15 +31,29 @@ namespace RolexWatches.Application.Mapper
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : string.Empty));
 
             CreateMap<User, CustomerDto>();
+
             CreateMap<CartItem, CartItemDto>()
-                .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
-                .ForMember(d => d.ImageUrl, o => o.MapFrom(s => s.Product!.Images))
-                .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
+            .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
+            .ForMember(d => d.ImageUrl, o => o.MapFrom(s =>
+                s.Product!.Images.Where(i => i.IsPrimary)
+                    .Select(i => i.ImageUrl).FirstOrDefault()
+                ?? s.Product!.Images.OrderBy(i => i.DisplayOrder)
+                    .Select(i => i.ImageUrl).FirstOrDefault()
+                ?? string.Empty))
+            .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
+
 
             CreateMap<WishlistItem, WishlistItemDto>()
-                .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
-                .ForMember(d => d.ImageUrl, o => o.MapFrom(s => s.Product!.Images))
-                .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
+             .ForMember(d => d.ProductName, o => o.MapFrom(s => s.Product!.Name))
+             .ForMember(d => d.ImageUrl, o => o.MapFrom(s =>
+                 s.Product!.Images.Where(i => i.IsPrimary)
+                     .Select(i => i.ImageUrl).FirstOrDefault()
+                 ?? s.Product!.Images.OrderBy(i => i.DisplayOrder)
+                     .Select(i => i.ImageUrl).FirstOrDefault()
+                 ?? string.Empty))
+             .ForMember(d => d.Price, o => o.MapFrom(s => s.Product!.Price));
+
+
             CreateMap<Review, ReviewDto>()
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : string.Empty))
                 .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.User != null ? s.User.FullName : string.Empty));

@@ -8,5 +8,7 @@ namespace RolexWatches.Domain.Interfaces
         Task<Order?> GetByIdAsync(int id);
         void Update(Order order);
         Task<bool> SaveChangesAsync();
+        Task AddAsync(Order order);
+        Task<List<Order>> GetByUserIdAsync(int userId);
     }
 }

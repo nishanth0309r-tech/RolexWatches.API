@@ -12,8 +12,8 @@ using RolexWatches.Infrastructure.Data;
 namespace RolexWatches.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260920123734_Rolex")]
-    partial class Rolex
+    [Migration("20260923154220_filters")]
+    partial class filters
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

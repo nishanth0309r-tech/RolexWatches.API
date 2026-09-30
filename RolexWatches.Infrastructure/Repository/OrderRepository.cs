@@ -20,5 +20,21 @@ namespace RolexWatches.Infrastructure.Repository
         public void Update(Order order) => dbcontext.Orders.Update(order);
 
         public async Task<bool> SaveChangesAsync() => await dbcontext.SaveChangesAsync() > 0;
+
+        public async Task AddAsync(Order order)
+        {
+            await dbcontext.Orders.AddAsync(order);
+        }
+
+        public async Task<List<Order>> GetByUserIdAsync(int userId)
+        {
+            return await dbcontext.Orders
+                    .Include(o => o.User)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.Product)
+                    .Where(o => o.UserId == userId)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .ToListAsync();
+        }
     }
 }
