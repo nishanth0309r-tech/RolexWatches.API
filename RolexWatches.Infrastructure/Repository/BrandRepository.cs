@@ -2,8 +2,7 @@
 using RolexWatches.Domain.Entities;
 using RolexWatches.Domain.Interfaces;
 using RolexWatches.Infrastructure.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace RolexWatches.Infrastructure.Repository
 {
