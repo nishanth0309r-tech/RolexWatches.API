@@ -48,7 +48,7 @@ namespace RolexWatches.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Users9",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -64,7 +64,7 @@ namespace RolexWatches.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Users9", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,9 +119,9 @@ namespace RolexWatches.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_Users_UserId",
+                        name: "FK_Orders_Users9_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "Users9",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -213,9 +213,9 @@ namespace RolexWatches.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Reviews_Users_UserId",
+                        name: "FK_Reviews_Users9_UserId",
                         column: x => x.UserId,
-                        principalTable: "Users",
+                        principalTable: "Users9",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -325,8 +325,8 @@ namespace RolexWatches.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
-                table: "Users",
+                name: "IX_Users9_Email",
+                table: "Users9",
                 column: "Email",
                 unique: true);
 
@@ -364,7 +364,7 @@ namespace RolexWatches.Infrastructure.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Users9");
 
             migrationBuilder.DropTable(
                 name: "Brands");

@@ -12,7 +12,7 @@ using RolexWatches.Infrastructure.Data;
 namespace RolexWatches.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260930142856_initialdraft")]
+    [Migration("20260930194156_initialdraft")]
     partial class initialdraft
     {
         /// <inheritdoc />
@@ -351,7 +351,7 @@ namespace RolexWatches.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users9");
                 });
 
             modelBuilder.Entity("RolexWatches.Domain.Entities.WishlistItem", b =>

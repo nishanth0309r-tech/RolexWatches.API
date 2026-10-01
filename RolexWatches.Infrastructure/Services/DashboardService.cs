@@ -26,7 +26,7 @@ namespace RolexWatches.Infrastructure.Services
 
                 TotalOrders = await dbcontext.Orders.CountAsync(),
 
-                TotalCustomers = await dbcontext.Users
+                TotalCustomers = await dbcontext.Users9
                     .CountAsync(u => u.Role == UserRole.Customer),
 
                 TotalRevenue = await dbcontext.Orders

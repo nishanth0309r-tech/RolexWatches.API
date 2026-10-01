@@ -20,12 +20,12 @@ namespace RolexWatches.Infrastructure.Repository
 
         public async Task<List<User>> GetAllCustomersAsync()
         {
-            return await dbContext.Users.Where(u => u.Role == UserRole.Customer).ToListAsync();
+            return await dbContext.Users9.Where(u => u.Role == UserRole.Customer).ToListAsync();
         }
 
         public async Task<User?> GetByIdAsync(int id)
         {
-            return await dbContext.Users.FindAsync(id);
+            return await dbContext.Users9.FindAsync(id);
         }
 
         public async Task<bool> SaveChangesAsync()
@@ -35,7 +35,7 @@ namespace RolexWatches.Infrastructure.Repository
 
         public void Update(User user)
         {
-            dbContext.Users.Update(user);
+            dbContext.Users9.Update(user);
         }
     }
 }

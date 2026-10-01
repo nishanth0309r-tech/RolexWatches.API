@@ -11,7 +11,7 @@ namespace RolexWatches.Infrastructure.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Brand> Brands => Set<Brand>();
         public DbSet<Category> Categories => Set<Category>();
-        public DbSet<User> Users => Set<User>();
+        public DbSet<User> Users9 => Set<User>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Review> Reviews => Set<Review>();

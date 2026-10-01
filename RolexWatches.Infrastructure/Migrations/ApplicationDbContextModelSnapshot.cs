@@ -45,7 +45,7 @@ namespace RolexWatches.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Qwin9Brands");
+                    b.ToTable("Brands");
                 });
 
             modelBuilder.Entity("RolexWatches.Domain.Entities.CartItem", b =>
@@ -348,7 +348,7 @@ namespace RolexWatches.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users9");
                 });
 
             modelBuilder.Entity("RolexWatches.Domain.Entities.WishlistItem", b =>
