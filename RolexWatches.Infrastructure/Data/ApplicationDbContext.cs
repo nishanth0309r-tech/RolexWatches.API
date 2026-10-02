@@ -17,6 +17,7 @@ namespace RolexWatches.Infrastructure.Data
         public DbSet<Review> Reviews => Set<Review>();
 
         public DbSet<CartItem> CartItems { get; set; } = null!;
+        public DbSet<Payment> PaymentsQ9 { get; set; } = null!;
         public DbSet<WishlistItem> WishlistItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -65,6 +66,7 @@ namespace RolexWatches.Infrastructure.Data
             modelBuilder.Entity<Product>().Property(p => p.DiscountPrice).HasColumnType("decimal(18,2)");
             modelBuilder.Entity<Order>().Property(o => o.TotalAmount).HasColumnType("decimal(18,2)");
             modelBuilder.Entity<OrderItem>().Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
+            modelBuilder.Entity<Payment>().Property(p => p.Amount).HasPrecision(18, 2);
         }
     }
 }

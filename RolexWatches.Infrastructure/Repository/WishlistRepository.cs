@@ -11,8 +11,11 @@ namespace RolexWatches.Infrastructure.Repository
         public WishlistRepository(ApplicationDbContext context) => _context = context;
 
         public async Task<List<WishlistItem>> GetByUserIdAsync(string userId) =>
-            await _context.WishlistItems.Include(w => w.Product)
-                .Where(w => w.UserId == userId).ToListAsync();
+            await _context.WishlistItems
+            .Include(w => w.Product)
+                .ThenInclude(p => p!.Images)
+            .Where(w => w.UserId == userId)
+            .ToListAsync();
 
         public async Task<WishlistItem?> GetByUserAndProductAsync(string userId, int productId) =>
             await _context.WishlistItems.FirstOrDefaultAsync(w => w.UserId == userId && w.ProductId == productId);

@@ -18,25 +18,24 @@ namespace RolexWatches.Infrastructure.Repository
         {
             return await dbcontext.CartItems
                 .Include(c => c.Product)
+                    .ThenInclude(p => p!.Images)
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
         }
 
-        public async Task<CartItem?> GetByUserAndProductAsync(
-            string userId,
-            int productId)
+        public async Task<CartItem?> GetByUserAndProductAsync(string userId, int productId)
         {
             return await dbcontext.CartItems
                 .Include(c => c.Product)
-                .FirstOrDefaultAsync(c =>
-                    c.UserId == userId &&
-                    c.ProductId == productId);
+                    .ThenInclude(p => p!.Images)
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.ProductId == productId);
         }
 
         public async Task<CartItem?> GetByIdAsync(int id)
         {
             return await dbcontext.CartItems
                 .Include(c => c.Product)
+                    .ThenInclude(p => p!.Images)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 

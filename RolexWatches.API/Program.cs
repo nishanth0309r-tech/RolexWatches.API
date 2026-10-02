@@ -125,6 +125,8 @@ public partial class Program
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IWishlistService, WishlistService>();
+        builder.Services.AddScoped<IPaymentGateway, PaymentGateway>();
+        builder.Services.AddScoped<IPaymentService, PaymentService>();
 
         // =====================================================
         // JWT AUTHENTICATION
