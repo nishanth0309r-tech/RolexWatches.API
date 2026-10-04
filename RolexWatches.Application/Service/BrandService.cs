@@ -46,7 +46,8 @@ namespace RolexWatches.Application.Service
 
             mapper.Map(dto, entity);
             repo.Update(entity);
-            return await repo.SaveChangesAsync();
+            await repo.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> DeleteAsync(int id)

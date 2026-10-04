@@ -33,10 +33,21 @@ namespace RolexWatches.Application.Service
 
         public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto)
         {
+            // 1. The parent, if given, must exist.
+            if (dto.ParentCategoryId.HasValue &&
+                await repo.GetByIdAsync(dto.ParentCategoryId.Value) == null)
+                throw new InvalidOperationException("Parent category not found.");
+
             var entity = mapper.Map<Category>(dto);
+            entity.Name = entity.Name.Trim();
+
             await repo.AddAsync(entity);
-            await repo.SaveChangesAsync();
-            return mapper.Map<CategoryDto>(entity);
+            if (!await repo.SaveChangesAsync())
+                throw new InvalidOperationException("Failed to save category.");
+
+            // 2. Re-fetch so the returned DTO has ParentCategoryName and ProductCount filled in.
+            var saved = await repo.GetByIdAsync(entity.Id);
+            return mapper.Map<CategoryDto>(saved);
         }
 
         public async Task<bool> UpdateAsync(int id, CreateCategoryDto dto)
@@ -44,9 +55,26 @@ namespace RolexWatches.Application.Service
             var entity = await repo.GetByIdAsync(id);
             if (entity == null) return false;
 
+            if (dto.ParentCategoryId.HasValue)
+            {
+                if (await repo.GetByIdAsync(dto.ParentCategoryId.Value) == null)
+                    throw new InvalidOperationException("Parent category not found.");
+
+                // Walk up from the proposed parent. If we reach this category, we'd create a loop.
+                var parentId = dto.ParentCategoryId;
+                while (parentId.HasValue)
+                {
+                    if (parentId.Value == id)
+                        throw new InvalidOperationException(
+                            "A category cannot be placed under itself or one of its own subcategories.");
+                    var parent = await repo.GetByIdAsync(parentId.Value);
+                    parentId = parent?.ParentCategoryId;
+                }
+            }
+
             mapper.Map(dto, entity);
-            repo.Update(entity);
-            return await repo.SaveChangesAsync();
+            await repo.SaveChangesAsync();   
+            return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -54,8 +82,16 @@ namespace RolexWatches.Application.Service
             var entity = await repo.GetByIdAsync(id);
             if (entity == null) return false;
 
+            if (entity.Products.Count > 0)
+                throw new InvalidOperationException("This category still has products.");
+
+            var all = await repo.GetAllAsync();
+            if (all.Any(c => c.ParentCategoryId == id))
+                throw new InvalidOperationException("This category still has subcategories.");
+
             repo.Delete(entity);
-            return await repo.SaveChangesAsync();
+            await repo.SaveChangesAsync();
+            return true;
         }
     }
 }

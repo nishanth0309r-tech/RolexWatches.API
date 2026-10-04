@@ -21,7 +21,11 @@ namespace RolexWatches.Application.Mapper
             CreateMap<Brand, BrandDto>().ReverseMap();
             CreateMap<CreateBrandDto, Brand>();
 
-            CreateMap<Category, CategoryDto>().ReverseMap();
+            CreateMap<Category, CategoryDto>()
+                .ForMember(d => d.ParentCategoryName,
+                    o => o.MapFrom(s => s.ParentCategory != null ? s.ParentCategory.Name : null))
+                .ForMember(d => d.ProductCount, o => o.MapFrom(s => s.Products.Count))
+                .ForMember(d => d.SubCategories, o => o.Ignore());
             CreateMap<CreateCategoryDto, Category>();
 
             CreateMap<Order, OrderDto>()
@@ -56,7 +60,7 @@ namespace RolexWatches.Application.Mapper
 
             CreateMap<Review, ReviewDto>()
                 .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product != null ? s.Product.Name : string.Empty))
-                .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.User != null ? s.User.FullName : string.Empty));
+                .ForMember(d => d.UserName, opt => opt.MapFrom(s => s.User != null ? s.User.FullName : string.Empty));
         }
     }
 }

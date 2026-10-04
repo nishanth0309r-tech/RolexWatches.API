@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using RolexWatches.Application.ServiceInterface;
 
 namespace RolexWatches.API.Controllers
@@ -19,8 +20,16 @@ namespace RolexWatches.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllReviews()
         {
-            var reviews = await service.GetAllAsync();
-            return Ok(reviews);
+            try
+            {
+                var reviews = await service.GetAllAsync();
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+
+                return NotFound(ex.Message);
+            }
         }
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteReview(int id)

@@ -23,42 +23,50 @@ namespace RolexWatches.Application.Service
 
         public async Task<OrderDto> CreateOrderAsync(int userId, CreateOrderDto dto)
         {
-            // userId param kept for interface symmetry with GetByUserIdAsync/GetByIdAsync,
-            // but the cart is looked up by the string form the claim actually provides —
-            // see the ClaimTypes.NameIdentifier note below.
-            var cartItems = await cartService.GetCartAsync(userId.ToString());
+            if (string.IsNullOrWhiteSpace(dto.ShippingAddress))
+                throw new InvalidOperationException("Shipping address is required.");
 
-            if (cartItems == null || cartItems.Count == 0)
+            var allCartItems = await cartService.GetCartAsync(userId.ToString());
+
+            if (allCartItems == null || allCartItems.Count == 0)
                 throw new InvalidOperationException("Your cart is empty.");
+
+            // Order only the products the user selected; no selection means the whole cart.
+            var requestedIds = (dto.Items ?? new()).Select(i => i.ProductId).ToHashSet();
+            var cartItems = requestedIds.Count > 0
+                ? allCartItems.Where(ci => requestedIds.Contains(ci.ProductId)).ToList()
+                : allCartItems.ToList();
+
+            if (cartItems.Count == 0)
+                throw new InvalidOperationException("The selected items are not in your cart.");
 
             var order = new Order
             {
                 UserId = userId,
+                ShippingAddress = dto.ShippingAddress.Trim(),
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = cartItems.Select(ci => new OrderItem
                 {
                     ProductId = ci.ProductId,
-                    Quantity = ci.Quantity,
-                    UnitPrice = ci.Price   // snapshot — protects order history if price changes later
+                    Quantity = ci.Quantity,     // taken from the cart in the DB, not from the request
+                    UnitPrice = ci.Price        // price snapshot, so order history survives price changes
                 }).ToList()
             };
 
             order.TotalAmount = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity);
 
             await repo.AddAsync(order);
-            var saved = await repo.SaveChangesAsync();
-            if (!saved)
+            if (!await repo.SaveChangesAsync())
                 throw new InvalidOperationException("Failed to save order.");
 
-            // clear the cart now that it's been converted to an order
+            // Remove only the items that were ordered; the rest stay in the cart.
             foreach (var item in cartItems)
                 await cartService.RemoveAsync(userId.ToString(), item.Id);
 
-            // re-fetch with includes so the DTO's Items list is populated
-            // (order.OrderItems here has no Product navigation loaded yet)
-            var saved_order = await repo.GetByIdAsync(order.Id);
-            return mapper.Map<OrderDto>(saved_order);
+            // Re-fetch with includes so the DTO's Items list is populated.
+            var savedOrder = await repo.GetByIdAsync(order.Id);
+            return mapper.Map<OrderDto>(savedOrder);
         }
 
         public async Task<List<OrderDto>> GetAllAsync()

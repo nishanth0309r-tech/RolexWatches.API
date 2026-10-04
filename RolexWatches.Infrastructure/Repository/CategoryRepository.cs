@@ -18,12 +18,19 @@ namespace RolexWatches.Infrastructure.Repository
 
         public async Task<List<Category>> GetAllAsync()
         {
-            return await dbcontext.Categories.ToListAsync();
+            return await dbcontext.Categories
+                   .Include(c => c.ParentCategory)
+                   .Include(c => c.Products)
+                   .OrderBy(c => c.Id)
+                   .ToListAsync();
         }
 
         public async Task<Category?> GetByIdAsync(int id)
         {
-            return await dbcontext.Categories.FindAsync(id);
+            return await dbcontext.Categories
+                    .Include(c => c.ParentCategory)
+                    .Include(c => c.Products)
+                    .FirstOrDefaultAsync(c => c.Id == id);
         }
 
         public async Task AddAsync(Category category)

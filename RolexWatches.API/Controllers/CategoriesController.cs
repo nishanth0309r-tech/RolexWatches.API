@@ -18,14 +18,33 @@ namespace RolexWatches.API.Controllers
 
 		// GET api/categories
 		[HttpGet]
-		public async Task<IActionResult> GetAll() => Ok(await _categoryService.GetAllAsync());
+		public async Task<IActionResult> GetAll()
+		{
+			try
+			{
+				return Ok(await _categoryService.GetAllAsync());
+			}
+			catch (Exception ex)
+			{
+
+				return BadRequest(ex.Message);
+			}
+		}
 
 		// GET api/categories/5
 		[HttpGet("{id:int}")]
 		public async Task<IActionResult> GetById(int id)
 		{
-			var category = await _categoryService.GetByIdAsync(id);
-			return category is null ? NotFound() : Ok(category);
+			try
+			{
+				var category = await _categoryService.GetByIdAsync(id);
+				return category is null ? NotFound() : Ok(category);
+			}
+			catch (Exception ex)
+			{
+
+				return BadRequest(ex.Message);
+			}
 		}
 
 		// POST api/categories  (Admin only)
@@ -33,8 +52,16 @@ namespace RolexWatches.API.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
 		{
-			var created = await _categoryService.CreateAsync(dto);
-			return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+			try
+			{
+				var created = await _categoryService.CreateAsync(dto);
+				return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+			}
+			catch (InvalidOperationException ex)
+            {
+
+				return BadRequest(ex.Message);
+			}
 		}
 
 		// PUT api/categories/5  (Admin only)
@@ -42,8 +69,16 @@ namespace RolexWatches.API.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Update(int id, [FromBody] CreateCategoryDto dto)
 		{
-			var updated = await _categoryService.UpdateAsync(id, dto);
-			return updated ? NoContent() : NotFound();
+			try
+			{
+				var updated = await _categoryService.UpdateAsync(id, dto);
+				return updated ? NoContent() : NotFound();
+			}
+			catch (Exception ex)
+			{
+
+				return BadRequest(ex.Message);
+			}
 		}
 
 		// DELETE api/categories/5  (Admin only)
@@ -51,8 +86,16 @@ namespace RolexWatches.API.Controllers
 		[Authorize(Roles = "Admin")]
 		public async Task<IActionResult> Delete(int id)
 		{
-			var deleted = await _categoryService.DeleteAsync(id);
-			return deleted ? NoContent() : NotFound();
+			try
+			{
+				var deleted = await _categoryService.DeleteAsync(id);
+				return deleted ? NoContent() : NotFound();
+			}
+			catch (Exception ex)
+			{
+
+				return BadRequest(ex.Message);
+			}
 		}
 	}
 }
