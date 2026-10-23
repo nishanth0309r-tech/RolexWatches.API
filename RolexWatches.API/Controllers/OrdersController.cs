@@ -39,6 +39,7 @@ namespace RolexWatches.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
+
             var order = await orderService.GetByIdAsync(id, UserId);
             return order == null ? NotFound() : Ok(order);
         }

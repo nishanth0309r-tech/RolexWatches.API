@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RolexWatches.Application.ServiceInterface;
+using RolexWatches.Infrastructure.Services;
 
 namespace RolexWatches.API.Controllers
 {
@@ -11,10 +12,12 @@ namespace RolexWatches.API.Controllers
     public class AdminOrdersController : ControllerBase
     {
         private readonly IOrderService service;
+        private readonly IPaymentService paymentService;
 
-        public AdminOrdersController(IOrderService service)
+        public AdminOrdersController(IOrderService service,IPaymentService paymentService)
         {
             this.service = service;
+            this.paymentService = paymentService;
         }
         [HttpGet]
         public async Task<IActionResult> GetAllOrders()
@@ -26,11 +29,18 @@ namespace RolexWatches.API.Controllers
         public async Task<IActionResult> UpdateOrderStatus(int id, [FromBody] string status)
         {
             var result = await service.UpdateStatusAsync(id, status);
-            if (result)
+            if (!result)
             {
-                return NoContent();
+                return NotFound();
             }
-            return NotFound();
+
+            // Cash is handed over when the parcel is delivered
+            if (status.Equals("Delivered", StringComparison.OrdinalIgnoreCase))
+            {
+                await paymentService.MarkCodCollectedAsync(id);
+            }
+
+            return NoContent();
         }
     }
 }

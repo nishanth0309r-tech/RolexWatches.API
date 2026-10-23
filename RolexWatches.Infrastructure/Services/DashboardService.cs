@@ -41,7 +41,7 @@ namespace RolexWatches.Infrastructure.Services
                         OrderId = o.Id,
                         CustomerName = o.User!.FullName,
                         Total = o.TotalAmount,
-                        Status = o.Status,
+                        Status = o.Status.ToString(),
                         CreatedAt = o.CreatedAt
                     })
                     .ToListAsync()

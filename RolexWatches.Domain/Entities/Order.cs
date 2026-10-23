@@ -1,4 +1,6 @@
-﻿namespace RolexWatches.Domain.Entities
+﻿using RolexWatches.Domain.Enums;
+
+namespace RolexWatches.Domain.Entities
 {
     public class Order
     {
@@ -7,8 +9,11 @@
         public User? User { get; set; }
         public decimal TotalAmount { get; set; }
         public string ShippingAddress { get; set; } = string.Empty;
-        public string Status { get; set; } = "Pending"; // Pending, Processing, Shipped, Delivered, Cancelled
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public string? StripeSessionId { get; set; }
+        public string? StripePaymentIntentId { get; set; }
+        public DateTime? PaidAt { get; set; }
         public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 }

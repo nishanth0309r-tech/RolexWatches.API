@@ -52,7 +52,7 @@ namespace RolexWatches.Infrastructure.Repository
         public async Task<bool> HasPurchasedAsync(int userId, int productId)
         {
             return await dbContext.Orders.AnyAsync(o => o.UserId == userId
-           && o.Status != "Pending" && o.Status != "Cancelled"
+           && o.Status != Domain.Enums.OrderStatus.Pending && o.Status != Domain.Enums.OrderStatus.Cancelled
            && o.OrderItems.Any(i => i.ProductId == productId));
         }
 

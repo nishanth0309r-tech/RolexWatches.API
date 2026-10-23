@@ -115,6 +115,7 @@ public partial class Program
         // SERVICES
         // =====================================================
 
+   
         builder.Services.AddScoped<IProductService, ProductService>();
         builder.Services.AddScoped<IBrandService, BrandService>();
         builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -126,6 +127,7 @@ public partial class Program
         builder.Services.AddScoped<ICartService, CartService>();
         builder.Services.AddScoped<IWishlistService, WishlistService>();
         builder.Services.AddScoped<IPaymentGateway, PaymentGateway>();
+        Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
         builder.Services.AddScoped<IPaymentService, PaymentService>();
 
         // =====================================================
@@ -181,7 +183,8 @@ public partial class Program
             options.AddPolicy("AllowAngular", policy =>
             {
                 policy
-                    .WithOrigins("http://localhost:4200")
+                    //.WithOrigins("http://localhost:4200")
+                    .AllowAnyOrigin()
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });

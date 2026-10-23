@@ -44,7 +44,7 @@ namespace RolexWatches.Application.Service
             {
                 UserId = userId,
                 ShippingAddress = dto.ShippingAddress.Trim(),
-                Status = "Pending",
+                Status = Domain.Enums.OrderStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = cartItems.Select(ci => new OrderItem
                 {
@@ -91,12 +91,16 @@ namespace RolexWatches.Application.Service
 
         public async Task<bool> UpdateStatusAsync(int id, string status)
         {
+            if (!Enum.TryParse<Domain.Enums.OrderStatus>(status, ignoreCase: true, out var newStatus)
+                || !Enum.IsDefined(newStatus))
+                return false;
+
             var order = await repo.GetByIdAsync(id);
             if (order == null)
             {
                 return false;
             }
-            order.Status = status;
+            order.Status = newStatus;
             repo.Update(order);
             return await repo.SaveChangesAsync();
         }
